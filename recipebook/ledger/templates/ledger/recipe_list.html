@@ -7,7 +7,7 @@
     <h1>Recipe Book</h1>
     <ul>
         {% for recipe in recipes %}
-            <li><a href="{{ recipe.link }}">{{ recipe.name }}</a></li>
+            <li><a href="{% url 'ledger:recipe_detail' recipe.id %}">{{ recipe.name }}</a></li>
         {% endfor %}
     </ul>
 </body>
