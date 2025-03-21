@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from ledger.models import Ingredient, Recipe, RecipeIngredient
+from django.contrib.auth.decorators import login_required
 
 def load_recipes():
     recipe_data = {
@@ -45,10 +46,12 @@ def index(request):
     load_recipes() 
     return render(request, 'ledger/index.html')
 
+@login_required
 def recipe_detail(request, id):
     recipe = Recipe.objects.get(id=id)
     return render(request, 'ledger/recipe_detail.html', {'recipe': recipe})
 
+@login_required
 def recipe_list(request):
     recipes = Recipe.objects.all()
     return render(request, 'ledger/recipe_list.html', {'recipes': recipes})
