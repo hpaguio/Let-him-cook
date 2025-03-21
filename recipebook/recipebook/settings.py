@@ -70,7 +70,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'recipebook.wsgi.application'
 
-
+LOGIN_REDIRECT_URL = 'recipe_list'
+LOGOUT_REDIRECT_URL = 'login'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -111,7 +112,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
