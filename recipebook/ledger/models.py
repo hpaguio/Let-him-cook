@@ -14,7 +14,8 @@ class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
-
+    image = models.ImageField(upload_to='recipe_images/', null=True, blank=True)
+    
     def __str__(self):
         return self.name
 
@@ -39,3 +40,11 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
+
+class RecipeImage(models.Model):
+    image = models.ImageField(upload_to='recipe_images/')
+    description = models.CharField(max_length=255)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='images')
+
+    def __str__(self):
+        return f"{self.recipe.name} - {self.description}"

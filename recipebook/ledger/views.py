@@ -1,72 +1,22 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from ledger.models import Ingredient, Recipe, RecipeIngredient
+from .forms import RecipeForm, IngredientForm, RecipeImageForm, RecipeIngredientForm, RecipeIngredientFormSet
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.models import User
+from .models import Ingredient, RecipeIngredient
+from django.forms import modelformset_factory
 
-def load_recipes():
-    recipe_data = {
-        "recipes": [
-            {
-                "name": "Recipe 1",
-                "ingredients": [
-                    {"name": "tomato", "quantity": "3pcs"},
-                    {"name": "onion", "quantity": "1pc"},
-                    {"name": "pork", "quantity": "1kg"},
-                    {"name": "water", "quantity": "1L"},
-                    {"name": "sinigang mix", "quantity": "1 packet"}
-                ]
-            },
-            {
-                "name": "Recipe 2",
-                "ingredients": [
-                    {"name": "garlic", "quantity": "1 head"},
-                    {"name": "onion", "quantity": "1pc"},
-                    {"name": "vinegar", "quantity": "1/2cup"},
-                    {"name": "water", "quantity": "1 cup"},
-                    {"name": "salt", "quantity": "1 tablespoon"},
-                    {"name": "whole black peppers", "quantity": "1 tablespoon"},
-                    {"name": "pork", "quantity": "1 kilo"}
-                ]
-            }
-        ]
-    }
-
-    author = User.objects.first()
-    if not author:
-        raise Exception("No user found to assign as author. Create a superuser first!")
-
-    for recipe_info in recipe_data['recipes']:
-        recipe, _ = Recipe.objects.get_or_create(name=recipe_info['name'], defaults={"author": author})
-        recipe.author = author 
-        recipe.save()
-
-        for ingredient_info in recipe_info['ingredients']:
-            ingredient, _ = Ingredient.objects.get_or_create(name=ingredient_info['name'])
-
-            RecipeIngredient.objects.get_or_create(
-                quantity=ingredient_info['quantity'],
-                ingredient=ingredient,
-                recipe=recipe
-            )
-
-    for recipe_info in recipe_data['recipes']:
-        recipe, _ = Recipe.objects.get_or_create(name=recipe_info['name'])
-
-        for ingredient_info in recipe_info['ingredients']:
-            ingredient, _ = Ingredient.objects.get_or_create(name=ingredient_info['name'])
-
-            RecipeIngredient.objects.create(
-                quantity=ingredient_info['quantity'],
-                ingredient=ingredient,
-                recipe=recipe
-            )
+IngredientFormSet = modelformset_factory(
+    RecipeIngredient,
+    fields=('ingredient', 'quantity'),
+    extra=1,
+    can_delete=False
+)
 
 def index(request):
-    load_recipes() 
     return render(request, 'ledger/index.html')
 
 @login_required
@@ -110,7 +60,76 @@ def custom_login_view(request):
 
     return render(request, 'ledger/login.html', {'form': form})
 
-
 def custom_logout_view(request):
     logout(request)
     return redirect('ledger:login')
+
+@login_required
+def recipe_add_view(request):
+    if request.method == 'POST':
+        form = RecipeForm(request.POST, request.FILES)
+        formset = IngredientFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            recipe = form.save(commit=False)
+            recipe.author = request.user
+            recipe.save()
+
+            ingredients = formset.save(commit=False)
+            for ingredient in ingredients:
+                ingredient.recipe = recipe
+                ingredient.save()
+            
+            formset.save_m2m()
+
+            return redirect('ledger:recipe_detail', id=recipe.id)
+    else:
+        form = RecipeForm()
+        formset = IngredientFormSet()
+    return render(request, 'ledger/recipe_add.html', {'form': form, 'formset': formset})
+
+
+@login_required
+def add_recipe_image(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    if request.method == 'POST':
+        form = RecipeImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            recipe_image = form.save(commit=False)
+            recipe_image.recipe = recipe
+            recipe_image.save()
+            return redirect('recipe_detail', id=pk)
+    else:
+        form = RecipeImageForm()
+
+    return render(request, 'ledger/recipe_image_add.html', {'form': form, 'recipe': recipe})
+
+@login_required
+def ingredient_add_view(request):
+    if request.method == 'POST':
+        form = IngredientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('ledger:recipe_add')
+    else:
+        form = IngredientForm()
+    return render(request, 'ledger/ingredient_add.html', {'form': form})
+
+@login_required
+def add_recipe_image_view(request, recipe_id):
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+
+    if request.method == 'POST':
+        form = RecipeImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            image = form.save(commit=False)
+            image.recipe = recipe
+            image.save()
+            return redirect('ledger:recipe_detail', id=recipe.id)
+    else:
+        form = RecipeImageForm()
+
+    return render(request, 'ledger/add_recipe_image.html', {
+        'form': form,
+        'recipe': recipe
+    })

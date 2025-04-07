@@ -7,5 +7,10 @@
         {% for recipe in recipes %}
             <li><a href="{% url 'ledger:recipe_detail' recipe.id %}">{{ recipe.name }}</a></li>
         {% endfor %}
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'ledger:recipe_add' %}">Add New Recipe</a>
+        {% endif %}
+
     </ul>
 {% endblock %}

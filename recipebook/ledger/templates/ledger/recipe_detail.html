@@ -3,8 +3,14 @@
 {% block page_heading %}{{ recipe.name }}{% endblock %}
 
 {% block content %}
+    {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.name }}" class="rounded shadow w-96 mb-4">
+    {% endif %}
+
     <p><strong>Author:</strong> {{ recipe.author.profile.name }}</p>
-    <ul>
+
+    <h3 class="text-lg font-semibold mt-4">Ingredients</h3>
+    <ul class="list-disc list-inside mb-4">
         {% for ingredient in recipe.ingredients.all %}
             <li>{{ ingredient.ingredient.name }}: {{ ingredient.quantity }}</li>
         {% endfor %}
