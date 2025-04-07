@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ recipe.name }}</title>
-</head>
-<body>
-    <h1>Recipe Book</h1>
-    <h2>{{ recipe.name }}</h2>
+{% extends 'ledger/base.html' %}
+
+{% block page_heading %}{{ recipe.name }}{% endblock %}
+
+{% block content %}
+    <p><strong>Author:</strong> {{ recipe.author.profile.name }}</p>
     <ul>
         {% for ingredient in recipe.ingredients.all %}
             <li>{{ ingredient.ingredient.name }}: {{ ingredient.quantity }}</li>
         {% endfor %}
     </ul>
-</body>
-</html>
+{% endblock %}
