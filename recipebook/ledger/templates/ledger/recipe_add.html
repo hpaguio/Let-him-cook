@@ -1,0 +1,49 @@
+{% extends "ledger/base.html" %}
+
+{% block content %}
+<h2>Add New Recipe</h2>
+
+<h2>Add Recipe</h2>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <h3>Ingredients</h3>
+  <div id="formset">
+    {{ formset.management_form }}
+    {% for form in formset %}
+      <div class="ingredient-form">
+        {{ form.as_p }}
+        <hr>
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="button" id="add-more">Add another ingredient</button><br><br>
+  <a href="{% url 'ledger:ingredient_add' %}">+ Add New Ingredient Model</a> <br><br>
+  <button type="submit">Save Recipe</button>
+</form>
+
+<script>
+document.getElementById('add-more').addEventListener('click', function () {
+  const formset = document.getElementById('formset');
+  const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+  const currentFormCount = parseInt(totalForms.value);
+  const newForm = formset.querySelector('.ingredient-form').cloneNode(true);
+
+  const inputs = newForm.querySelectorAll('input, select');
+  inputs.forEach(input => {
+    if (input.type !== 'hidden') input.value = '';
+    const name = input.name.replace(/-\d+-/, `-${currentFormCount}-`);
+    const id = `id_${name}`;
+    input.name = name;
+    input.id = id;
+  });
+
+  formset.insertBefore(newForm, formset.lastElementChild);
+  totalForms.value = currentFormCount + 1;
+});
+</script>
+
+{% endblock %}
