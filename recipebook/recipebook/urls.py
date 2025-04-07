@@ -21,5 +21,4 @@ from django.shortcuts import redirect
 urlpatterns = [
     path('', include('ledger.urls')),
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('recipes/list', permanent = True))
 ]
