@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipe Book</title>
+</head>
+<body>
+    <header>
+        <h1>Recipe Book</h1>
+        {% if user.is_authenticated %}
+            <a href="{% url 'ledger:logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'ledger:login' %}">Login</a>
+        {% endif %}
+    </header>
+    <h2>{% block page_heading %}{% endblock %}</h2>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

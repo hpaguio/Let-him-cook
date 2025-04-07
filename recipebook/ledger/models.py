@@ -1,5 +1,7 @@
 from django.db import models
-from django.urls import reverse
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=100)
@@ -9,6 +11,9 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(max_length=100)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -20,3 +25,17 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f"{self.quantity} of {self.ingredient.name} for {self.recipe.name}"
+    
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    bio = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    instance.profile.save()
